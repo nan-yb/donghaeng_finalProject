@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.memberManage.dao.IMemberManagementDAO">
+	<sql id="searchFrag">
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<if test="searchType.equals('id')">
+				AND A.MEM_ID LIKE '%'||#{searchWord}||'%'
+			</if>
+			<if test="searchType.equals('name')">
+				AND B.PERSON_NAME LIKE '%'||#{searchWord}||'%'
+			</if>
+		</if>
+	</sql>
+	
+	<sql id="searchFrag2">
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<if test="searchType.equals('id')">
+				AND A.MEM_ID LIKE '%'||#{searchWord}||'%'
+			</if>
+			<if test="searchType.equals('name')">
+				AND B.PERSON_NAME LIKE '%'||#{searchWord}||'%'
+			</if>
+		</if>
+	</sql>
+	
+	<resultMap type="MemberVO" id="memberMap" autoMapping="true">
+		<id property="mem_id" column="MEM_ID" />
+		<collection property="personList" ofType="personVO" autoMapping="true"/>
+	</resultMap>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM MEMBER A, PERSON B
+		WHERE A.MEM_ID = B.PERSON_ID
+		<include refid="searchFrag"></include>
+	</select>
+	<select id="selectMemberManagementList" parameterType="pagingVO" resultMap="memberMap">
+		SELECT B.*
+		FROM (
+			SELECT ROWNUM RNUM, A.*
+			FROM (
+				SELECT
+				    A.MEM_ID,
+				    A.MEM_MILEAGE,
+				    B.PERSON_ZIP,
+				    B.PERSON_ADDR1,
+				    B.PERSON_ADDR2,
+				    B.PERSON_TEL,
+				    B.PERSON_MAIL,
+				    B.PERSON_NAME,
+				    A.MEM_STATE
+				FROM MEMBER A, PERSON B
+				WHERE A.MEM_ID = B.PERSON_ID 
+				<include refid="searchFrag"></include>
+				ORDER BY MEM_ID ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectMemberManagement" parameterType="String" resultMap="memberMap">
+		SELECT
+		    A.MEM_ID,
+		    A.MEM_MILEAGE,
+		    B.PERSON_ZIP,
+		    B.PERSON_ADDR1,
+		    B.PERSON_ADDR2,
+		    B.PERSON_TEL,
+		    B.PERSON_MAIL,
+		    B.PERSON_NAME,
+		    A.MEM_STATE
+		FROM MEMBER A, PERSON B
+		WHERE A.MEM_ID = B.PERSON_ID
+		AND A.MEM_ID = #{mem_id}
+	</select>
+	
+	<resultMap type="MemberVO" id="selectMap" autoMapping="true">
+		<id property="mem_id" column="MEM_ID" />
+		<collection property="personList" ofType="personVO" autoMapping="true"/>
+	</resultMap>
+	
+	<select id = "selectBlackList" parameterType="pagingVO" resultMap="selectMap">
+		SELECT B.*
+		FROM (
+			SELECT ROWNUM RNUM, A.*
+			FROM (
+				SELECT
+					A.MEM_ID, B.PERSON_NAME, A.MEM_STATE,
+					B.PERSON_TEL, B.PERSON_MAIL, A.MEM_MILEAGE
+				FROM MEMBER A, PERSON B
+				WHERE A.MEM_ID = B.PERSON_ID
+				AND A.MEM_STATE = 'F'
+				<include refid="searchFrag2"></include>
+				ORDER BY MEM_ID ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<update id="updateBlackMember" parameterType="MemberVO">
+		UPDATE MEMBER
+		SET
+		MEM_STATE = #{mem_state}
+		WHERE MEM_ID = #{mem_id}
+	</update>
+	
+	<select id="selectTotalBlackListRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM MEMBER
+		WHERE MEM_STATE = 'F'
+		<include refid="searchFrag"></include>
+	</select>
+	
+	<resultMap type="personVO" id="personMap" autoMapping="true">
+		<id property="person_id" column="PERSON_ID" />
+		<collection property="memberList" ofType="MemberVO" autoMapping="true"/>
+	</resultMap>	
+	
+	
+	<select id="selectPerson" parameterType="String" resultMap="personMap">
+		SELECT P.PERSON_ID, M.MEM_MILEAGE, M.MEM_STATE,
+			   P.PERSON_NAME, P.PERSON_PASS, P.PERSON_ZIP,
+			   P.PERSON_ADDR1, P.PERSON_ADDR2, P.PERSON_TEL,
+			   P.PERSON_MAIL, P.PER_IMG
+		FROM MEMBER M, PERSON P
+		WHERE M.MEM_ID = P.PERSON_ID
+		AND PERSON_ID = #{person_id}
+	</select>
+	
+	<update id = "updateMyInfo" parameterType="personVO">
+		UPDATE PERSON
+		SET 
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(person_pass)">
+			PERSON_PASS = #{person_pass}
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(person_zip)">
+		    , PERSON_ZIP = #{person_zip}
+		    </if>
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(person_addr1)">
+		    , PERSON_ADDR1 = #{person_addr1}
+		    </if>
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(person_addr2)">
+		    , PERSON_ADDR2 = #{person_addr2}
+		    </if>
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(person_tel)">
+		    , PERSON_TEL = #{person_tel}
+		    </if>
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(person_mail)">
+		    , PERSON_MAIL = #{person_mail}
+		    </if>
+		    <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(per_img)">
+		    , PER_IMG = #{per_img}
+		    </if>
+		WHERE PERSON_ID = #{person_id}
+	</update>
+	
+	
+</mapper>

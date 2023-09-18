@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.tipboard.dao.ITPdsDAO">
+		<insert id="insertPds" parameterType="travel_tip_fileVO">
+		<selectKey resultType="long" keyProperty="travel_tip_file_no" order="BEFORE">
+			SELECT TRAVEL_TIP_FILE_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO TRAVEL_TIP_FILE (
+		    TRAVEL_TIP_FILE_NO,    TRAVEL_TIP_NO,    TRAVEL_TIP_FILE_NAME,
+		    TRAVEL_TIP_SAVENAME,    TRAVEL_TIP_FILE_MIME,    TRAVEL_TIP_FILE_SIZE,
+		    TRAVEL_TIP_FILE_FANCYSIZE
+		) VALUES (
+			#{travel_tip_file_no},    #{travel_tip_no},    #{travel_tip_file_name},
+		    #{travel_tip_savename},    #{travel_tip_file_mime},    #{travel_tip_file_size},
+		    #{travel_tip_file_fancysize}
+		)
+	</insert>
+	
+	<insert id="insertPdsList" parameterType="travel_tipVO">
+		<if test="pdsList!=null and pdsList.size() gt 0">
+			INSERT INTO TRAVEL_TIP_FILE
+			(
+			    TRAVEL_TIP_FILE_NO,    TRAVEL_TIP_NO,    TRAVEL_TIP_FILE_NAME,
+			    TRAVEL_TIP_SAVENAME,    TRAVEL_TIP_FILE_MIME,    TRAVEL_TIP_FILE_SIZE,
+			    TRAVEL_TIP_FILE_FANCYSIZE
+			) 
+			SELECT TRAVEL_TIP_FILE_SEQ.NEXTVAL, A.*
+			FROM (
+			
+			<foreach collection="pdsList" item="pds" index="idx" 
+					separator=" UNION ALL " >
+					SELECT  #{travel_tip_no},    #{pds.travel_tip_file_name},
+		    		#{pds.travel_tip_savename},    #{pds.travel_tip_file_mime},    #{pds.travel_tip_file_size},
+		   		    #{pds.travel_tip_file_fancysize} FROM DUAL			
+			</foreach>	
+			) A	
+		</if>
+	</insert>
+	
+	<select id="selectPds" parameterType="long" resultType="travel_tip_fileVO">
+		SELECT TRAVEL_TIP_FILE_NO, TRAVEL_TIP_FILE_NAME, TRAVEL_TIP_SAVENAME, TRAVEL_TIP_FILE_SIZE
+				, TRAVEL_TIP_FILE_FANCYSIZE, TRAVEL_TIP_FILE_MIME
+		FROM TRAVEL_TIP_FILE
+		WHERE TRAVEL_TIP_FILE_NO = #{travel_tip_file_no}
+	</select>
+	<delete id="deletePds" parameterType="long">
+		DELETE FROM TRAVEL_TIP_FILE
+		WHERE TRAVEL_TIP_FILE_NO = #{travel_tip_file_no}
+	</delete>
+	
+	<delete id="deletePdses" parameterType="travel_tipVO">
+		DELETE FROM TRAVEL_TIP_FILE
+		WHERE TRAVEL_TIP_FILE_NO IN  
+		<foreach collection="delFiles" item="travel_tip_file_no" open="(" close=")" separator=",">
+			#{travel_tip_file_no }
+		</foreach>
+	</delete>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

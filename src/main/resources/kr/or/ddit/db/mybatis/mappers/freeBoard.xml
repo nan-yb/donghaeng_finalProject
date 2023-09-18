@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.freeboard.dao.IFreeboardDAO">
+   
+    <sql id="searchFrag">
+      WHERE BOARD_TYPE = 3
+      <trim suffixOverrides=" AND|OR ">
+         <if test="searchVO!=null">
+         AND
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.mem_id)">
+               mem_id LIKE '%'||#{searchVO.mem_id}||'%' OR
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.board_title)">
+               board_title LIKE '%'||#{searchVO.board_title}||'%' OR
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.board_content)">
+               board_content LIKE '%'||#{searchVO.board_content}||'%' OR
+            </if>
+         </if>
+      </trim>
+   </sql>
+   
+   <sql id = "searchFrag2">
+      <if test="searchVO != null">
+         <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.mem_id)">
+            AND m.MEM_ID LIKE '%'||#{searchVO.mem_id}||'%'
+         </if>
+         <if
+            test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.board_title)">
+            AND b.BOARD_TITLE LIKE '%'||#{searchVO.board_title}||'%'
+         </if>
+         <if
+            test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.board_content)">
+            AND b.BOARD_CONTENT LIKE '%'||#{searchVO.board_content}||'%'
+         </if>
+      </if>
+   </sql>
+
+   <select id = "selectTotalRecord" parameterType="pagingVO" resultType="long">
+      SELECT NVL(COUNT(*), 0)
+      FROM BOARD
+      <include refid="searchFrag" />
+   </select>
+
+   <resultMap type = "freeboardVO" id = "boardMap" autoMapping = "true">
+      <id property = "board_no" column = "BOARD_NO"/>
+      <collection property = "personList" ofType = "PersonVO" autoMapping = "true"/>
+   </resultMap>
+
+   <select id="selectBoardList" parameterType="long" resultMap="boardMap">
+      SELECT B.*
+      FROM (
+          SELECT ROWNUM RNUM, A.*
+          FROM (
+              SELECT b.BOARD_NO, 
+                    b.BOARD_TITLE, 
+                    p.PERSON_NAME,  m.MEM_ID,    b.BOARD_DATE, 
+                      b.BOARD_VIEW_COUNT, b.BOARD_RECOMMEND_COUNT
+              FROM BOARD b,PERSON p,MEMBER m
+              WHERE b.MEM_ID = m.MEM_ID
+            AND m.MEM_ID = p.PERSON_ID
+            AND b.BOARD_TYPE = 3
+            <include refid = "searchFrag2"/>
+              ORDER BY BOARD_NO DESC
+          ) A ) B
+      WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+   </select>
+   
+   <resultMap type="freeboardVO" id="selectBoardMap" autoMapping="true">
+      <id property="board_no" column="BOARD_NO"/>
+      <collection property="freeFileList" ofType="freefileVO" autoMapping="true"/>
+   </resultMap>
+   
+   <select id = "selectBoard" parameterType="long" resultMap="selectBoardMap">
+      SELECT BOARD.BOARD_NO BOARD_NO, MEM_ID, BOARD_TITLE, BOARD_CONTENT,
+         BOARD_DATE, BOARD_VIEW_COUNT, BOARD_RECOMMEND_COUNT 
+         , BOARD_FILE_NO, BOARD_FILE_SAVENAME, BOARD_FILE_NAME, BOARD_FILE_SIZE, BOARD_FILE_FANCYSIZE
+         , BOARD_FILE_MIME
+      FROM BOARD LEFT OUTER JOIN BOARD_FILE ON (BOARD.BOARD_NO = BOARD_FILE.BOARD_NO)
+      WHERE BOARD.BOARD_NO = #{board_no}
+      AND BOARD_TYPE = 3
+   </select>
+   
+   <update id = "incrementHit" parameterType="long">
+      UPDATE BOARD
+      SET
+      BOARD_VIEW_COUNT = BOARD_VIEW_COUNT+1
+      WHERE BOARD_NO = #{board_no}
+      AND BOARD_TYPE = 3
+   </update>
+   
+   
+   <update id = "updateBoard" parameterType="freeboardVO">
+      UPDATE BOARD
+      <set>
+         <if test = "@org.apache.commons.lang3.StringUtils@isNotBlank(board_title)">
+            BOARD_TITLE = #{board_title},
+         </if>
+         <if test = "@org.apache.commons.lang3.StringUtils@isNotBlank(board_content)">
+            BOARD_CONTENT = #{board_content}
+         </if>
+      </set>
+      WHERE BOARD_NO = #{board_no}
+   </update>
+   
+   <insert id = "insertBoard" parameterType="freeboardVO">
+      <selectKey resultType = "long" keyProperty="board_no" order = "BEFORE">
+         SELECT BOARD_SEQ.NEXTVAL FROM DUAL
+      </selectKey>
+      INSERT INTO BOARD(
+         BOARD_NO, MEM_ID, BOARD_TITLE,
+         BOARD_CONTENT, BOARD_DATE, BOARD_TYPE, BOARD_VIEW_COUNT,
+         BOARD_RECOMMEND_COUNT
+         
+      )VALUES(
+         #{board_no}, #{mem_id}, #{board_title},
+         #{board_content}, SYSDATE, 3, 0, 0
+      )
+   </insert>
+   
+   <delete id="deleteBoard" parameterType="long">
+      DELETE FROM BOARD WHERE BOARD_NO = #{board_no} AND BOARD_TYPE = 3
+   </delete>
+   
+   <select id="selectPerson" parameterType="String" resultType="personVO">
+      SELECT *
+      FROM PERSON
+      WHERE PERSON_ID = #{person_id}
+   </select>
+   
+   
+   <update id = "incrementRcmd" parameterType="long">
+		UPDATE BOARD
+		SET
+		BOARD_RECOMMEND_COUNT = BOARD_RECOMMEND_COUNT+1
+		WHERE BOARD_NO = #{board_no}
+		AND BOARD_TYPE = 3
+	</update>
+	
+	<insert id = "insertFreeRcmd" parameterType="map">
+		INSERT INTO BOARD_RCMD (
+			BOARD_NO, RCMD_MEM_ID, BOARD_TYPE
+		) VALUES (
+			#{filterData.board_no}, #{filterData.authMembmer}, 1
+		)
+	</insert>
+	
+	<select id = "selectFreeRcmd" parameterType="map" resultType="int">
+		SELECT NVL(COUNT(*), 0) FROM BOARD_RCMD
+		WHERE BOARD_NO = #{filterData.board_no}
+		AND RCMD_MEM_ID = #{filterData.authMembmer}
+		AND BOARD_TYPE = 1
+	</select>
+	
+	<delete id="deleteFreeRcmd" parameterType="long">
+		DELETE FROM BOARD_RCMD
+		WHERE BOARD_NO = #{board_no}
+		AND BOARD_TYPE = 1
+	</delete>
+	
+	<select id = "selectFreeReport" parameterType="map" resultType="int">
+		SELECT NVL(COUNT(*), 0) FROM BOARD_REPORT
+		WHERE BOARD_NO = #{board_no}
+		AND REPORT_MEM_ID = #{authMember}
+		AND BOARD_TYPE = 1
+	</select>
+	
+	<insert id = "insertFreeReport" parameterType="map">
+		<selectKey resultType = "long" keyProperty="report_no" order = "BEFORE">
+         SELECT BOARD_REPORT_SEQ.NEXTVAL FROM DUAL
+      	</selectKey>
+	      INSERT INTO BOARD_REPORT(
+	         REPORT_NO, BOARD_NO, REPORT_MEM_ID,
+	         BOARD_TYPE
+	      )VALUES(
+	         #{report_no}, #{board_no}, #{authMember},
+	         1
+	      )
+	</insert>
+</mapper>

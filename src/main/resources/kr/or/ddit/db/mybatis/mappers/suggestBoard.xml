@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.suggestboard.dao.ISuggestBoardDao">
+	
+		<sql id="searchFrag">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+				<if test="searchType.equals('writer')">
+					AND B.PERSON_NAME LIKE '%'||#{searchWord}||'%'
+				</if>
+				<if test="searchType.equals('title')">
+					AND A.SUGGEST_BOARD_TITLE LIKE '%'||#{searchWord}||'%'
+				</if>
+			</if>	
+	</sql>
+	
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*),0) 
+		FROM SUGGEST_BOARD A, PERSON B
+        WHERE A.MEM_ID = B.PERSON_ID
+		<include refid="searchFrag" />
+	</select>
+	
+	<insert id="suggestInsert" parameterType="SuggestBoardVO">
+			<selectKey order="BEFORE" resultType="long" keyProperty="suggest_board_no">
+				select suggest_board_seq.nextval from dual
+			</selectKey>
+		INSERT INTO SUGGEST_BOARD (
+			    SUGGEST_BOARD_NO,
+			    SUGGEST_BOARD_TITLE,
+			    SUGGEST_BOARD_CONTENT,
+			    SUGGEST_BOARD_DATE,
+			    MEM_ID
+			) VALUES (
+			    #{suggest_board_no},
+			    #{suggest_board_title},
+			    #{suggest_board_content},
+			    SYSDATE,
+			    #{mem_id}
+			)
+	</insert>
+	
+	<resultMap type="SuggestBoardVO" id="suggestboardMap" autoMapping="true">
+		<id property="suggest_board_no" column="SUGGEST_BOARD_NO"/>
+		<collection property="personList" ofType="personVO" autoMapping="true"/>
+	</resultMap>
+	
+	
+	<select id="selectSuggestList" parameterType="pagingVO"  resultMap="suggestboardMap" >
+		SELECT B.*
+		FROM (
+			SELECT ROWNUM RNUM, A.*
+			FROM (
+				SELECT
+					A.SUGGEST_BOARD_NO,
+				    A.SUGGEST_BOARD_TITLE,
+				    A.SUGGEST_BOARD_CONTENT,
+				    A.SUGGEST_BOARD_DATE,
+				    A.MEM_ID,
+				    B.PERSON_NAME
+				FROM SUGGEST_BOARD A, PERSON B
+                WHERE A.MEM_ID = B.PERSON_ID
+                <include refid="searchFrag" />
+				ORDER BY SUGGEST_BOARD_NO DESC
+				) A ) B
+		 WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="suggestSelect" parameterType="long" resultType="SuggestBoardVO">
+		SELECT
+					A.SUGGEST_BOARD_NO,
+				    A.SUGGEST_BOARD_TITLE,
+				    A.SUGGEST_BOARD_CONTENT,
+				    A.SUGGEST_BOARD_DATE,
+				    A.MEM_ID,
+				    B.PERSON_NAME
+				FROM SUGGEST_BOARD A, PERSON B
+                WHERE A.MEM_ID = B.PERSON_ID
+				  AND A.SUGGEST_BOARD_NO= #{suggest_board_no}
+	</select>
+	
+	<delete id="suggestDelete" parameterType="long">
+			DELETE FROM SUGGEST_BOARD
+		WHERE
+		    SUGGEST_BOARD_NO = #{suggest_board_no}
+	</delete>
+	
+	<update id="suggestUpdate" parameterType="SuggestBoardVO">
+		UPDATE SUGGEST_BOARD
+		    SET
+		    SUGGEST_BOARD_TITLE = #{suggest_board_title },
+		    SUGGEST_BOARD_CONTENT = #{suggest_board_content }
+		WHERE
+		   SUGGEST_BOARD_NO = #{suggest_board_no }
+		   AND MEM_ID = #{mem_id}
+	</update>
+	
+</mapper>

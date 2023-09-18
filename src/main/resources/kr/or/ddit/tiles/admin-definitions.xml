@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+<!-- 	definiation name == 논리적인 view name -->
+  <definition name="adminParent" template="/WEB-INF/views/manageTemplate.jsp">
+  	<put-attribute name="manageScript" value="/includee/admin/adminPreScript.jsp" />
+    <put-attribute name="title" value="동행" />
+    <put-attribute name="manageHeader" value="/includee/admin/adminHeader.jsp" />
+    <put-attribute name="manageFooter" value="/includee/admin/adminFooter.jsp" />
+  </definition>
+  
+  <definition name="admin/**" extends="adminParent">
+    <put-attribute name="body" value="/WEB-INF/views/admin/{1}.jsp" />
+  </definition>
+  
+</tiles-definitions>

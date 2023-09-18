@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.tipboard.dao.ITBoardDAO">
+	<sql id="searchFrag">
+		<trim prefix=" WHERE " suffixOverrides=" AND|OR ">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.travel_tip_mem_id)">
+					TRAVEL_TIP_MEM_ID LIKE '%'||#{searchVO.travel_tip_mem_id}||'%' OR
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.travel_tip_title)">
+					TRAVEL_TIP_TITLE LIKE '%'||#{searchVO.travel_tip_title}||'%' OR
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.travel_tip_content)">
+					TRAVEL_TIP_CONTENT LIKE '%'||#{searchVO.travel_tip_content}||'%' OR
+				</if>
+		</trim>
+	</sql>
+	<sql id="searchFrag2">
+			<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.travel_tip_mem_id)">
+					AND TRAVEL_TIP_MEM_ID LIKE '%'||#{searchVO.travel_tip_mem_id}||'%' 
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.travel_tip_title)">
+					AND TRAVEL_TIP_TITLE LIKE '%'||#{searchVO.travel_tip_title}||'%' 
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.travel_tip_content)">
+					AND TRAVEL_TIP_CONTENT LIKE '%'||#{searchVO.travel_tip_content}||'%' 
+				</if>
+			</if>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM TRAVEL_TIP_BOARD
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectPerson" parameterType="String" resultType="personVO">
+		SELECT *
+		FROM PERSON
+		WHERE PERSON_ID = #{mem_id}
+	</select>
+	
+	<resultMap type="travel_tipVO" id="boardMap" autoMapping="true">
+		<id property="travel_tip_no" column="TRAVEL_TIP_NO"/>
+		<collection property="personList" ofType="PersonVO" autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectBoardList" parameterType="pagingVO" resultMap="boardMap">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT r.TRAVEL_TIP_NO, 
+		        		r.TRAVEL_TIP_TITLE,
+		        		p.PERSON_NAME,p.PERSON_ID,	 r.TRAVEL_TIP_DATE, 
+		                r.TRAVEL_TIP_VIEW_COUNT, r.TRAVEL_TIP_RECOMMEND_COUNT
+		        FROM TRAVEL_TIP_BOARD r,PERSON p,MEMBER m
+		        WHERE r.TRAVEL_TIP_MEM_ID = m.MEM_ID
+				AND m.MEM_ID = p.PERSON_ID
+		        <include refid="searchFrag2" />
+		        ORDER BY TRAVEL_TIP_NO DESC
+		    ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	</select>
+	<resultMap type="travel_tipVO" id="travel_tipMap" autoMapping="true">
+		<id property="travel_tip_no" column="TRAVEL_TIP_NO"/>
+		
+		<collection property="pdsList" ofType="travel_tip_fileVO" autoMapping="true" />
+	</resultMap>
+	<select id="selectBoard" parameterType="long" resultMap="travel_tipMap">
+		SELECT TRAVEL_TIP_BOARD.TRAVEL_TIP_NO TRAVEL_TIP_NO, TRAVEL_TIP_MEM_ID, TRAVEL_TIP_TITLE, TRAVEL_TIP_CONTENT,
+			TRAVEL_TIP_DATE, TRAVEL_TIP_VIEW_COUNT, TRAVEL_TIP_RECOMMEND_COUNT 
+			, TRAVEL_TIP_FILE_NO, TRAVEL_TIP_SAVENAME, TRAVEL_TIP_FILE_NAME, TRAVEL_TIP_FILE_SIZE, TRAVEL_TIP_FILE_FANCYSIZE
+			, TRAVEL_TIP_FILE_MIME
+		FROM TRAVEL_TIP_BOARD LEFT OUTER JOIN TRAVEL_TIP_FILE ON (TRAVEL_TIP_BOARD.TRAVEL_TIP_NO = TRAVEL_TIP_FILE.TRAVEL_TIP_NO)
+		WHERE TRAVEL_TIP_BOARD.TRAVEL_TIP_NO = #{travel_tip_no}
+	</select>
+	
+	<update id="incrementHit" parameterType="long">
+		UPDATE TRAVEL_TIP_BOARD
+		SET
+		TRAVEL_TIP_VIEW_COUNT = TRAVEL_TIP_VIEW_COUNT + 1
+		WHERE TRAVEL_TIP_NO = #{travel_tip_no}
+	</update>
+	
+	<update id="updateBoard" parameterType="travel_tipVO">
+		UPDATE TRAVEL_TIP_BOARD
+		   <set>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(travel_tip_title)"> 
+			   TRAVEL_TIP_TITLE		=	#{travel_tip_title},
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(travel_tip_content)"> 
+		   	   TRAVEL_TIP_CONTENT	=	#{travel_tip_content}
+		    </if>
+		   </set>
+		WHERE TRAVEL_TIP_NO =#{travel_tip_no}
+	</update>
+	
+	<insert id="insertBoard" parameterType="travel_tipVO">
+		<selectKey resultType="long" keyProperty="travel_tip_no" order="BEFORE">
+			SELECT TRAVEL_TIP_BOARD_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO TRAVEL_TIP_BOARD (
+		    TRAVEL_TIP_NO,    TRAVEL_TIP_MEM_ID, TRAVEL_TIP_TITLE,
+		    TRAVEL_TIP_CONTENT,    TRAVEL_TIP_DATE
+		    
+		) VALUES (
+			#{travel_tip_no},    #{travel_tip_mem_id}, #{travel_tip_title},
+		    #{travel_tip_content},    SYSDATE
+		    
+		)
+	</insert>
+	<delete id="deleteBoard" parameterType="long">
+		DELETE FROM TRAVEL_TIP_BOARD WHERE TRAVEL_TIP_NO = #{travel_tip_no}
+	</delete>
+	
+	<update id="incrementRcmd" parameterType="long">
+		UPDATE TRAVEL_TIP_BOARD
+		SET
+		TRAVEL_TIP_RECOMMEND_COUNT = TRAVEL_TIP_RECOMMEND_COUNT + 1
+		WHERE TRAVEL_TIP_NO = #{travel_tip_no}
+	</update>
+	
+	<insert id = "insertTipRcmd" parameterType="map">
+		INSERT INTO BOARD_RCMD (
+			BOARD_NO, RCMD_MEM_ID, BOARD_TYPE
+		) VALUES (
+			#{travel_tip_no}, #{authMember}, 3
+		)
+	</insert>
+	
+	<select id = "selectTipRcmd" parameterType="map" resultType="int">
+		SELECT NVL(COUNT(*), 0) FROM BOARD_RCMD
+		WHERE BOARD_NO = #{travel_tip_no}
+		AND RCMD_MEM_ID = #{authMember}
+		AND BOARD_TYPE = 3
+	</select>
+	
+	<delete id="deleteTipRcmd" parameterType="long">
+		DELETE FROM BOARD_RCMD
+		WHERE BOARD_NO = #{travel_tip_no}
+		AND BOARD_TYPE = 3
+	</delete>
+	
+	<select id = "selectTipReport" parameterType="map" resultType="int">
+		SELECT NVL(COUNT(*), 0) FROM BOARD_REPORT
+		WHERE BOARD_NO = #{travel_tip_no}
+		AND REPORT_MEM_ID = #{authMember}
+		AND BOARD_TYPE = 3
+	</select>
+	
+	<insert id = "insertTipReport" parameterType="map">
+		<selectKey resultType = "long" keyProperty="report_no" order = "BEFORE">
+         SELECT BOARD_REPORT_SEQ.NEXTVAL FROM DUAL
+      	</selectKey>
+	      INSERT INTO BOARD_REPORT(
+	         REPORT_NO, BOARD_NO, REPORT_MEM_ID,
+	         BOARD_TYPE
+	      )VALUES(
+	         #{report_no}, #{travel_tip_no}, #{authMember},
+	         3
+	      )
+	</insert>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

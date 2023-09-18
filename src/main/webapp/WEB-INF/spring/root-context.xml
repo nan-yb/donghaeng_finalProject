@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+<!-- 	스키마 종류 : beans, c, p, context -->
+	
+<!-- 	상위 컨테이너를 통해 관리될 공통 빈들의 메타데이터를 등록. -->
+<!-- 	공통 빈? DispatcherServlet 에 의해 생성되는 하위 컨테이너들에 의해서 공유될 빈. -->
+<!-- 	dao, service, 웹에 종속되지 않는 legacy 빈들. -->
+
+	<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Component"/>
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+		<context:include-filter type="annotation" expression="org.aspectj.lang.annotation.Aspect" />
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+	
+		<util:properties id="appInfo" location="classpath:kr/or/ddit/appInfo.properties" />
+	
+<!-- 	mail -->
+	 <bean id="javaMailSender" class = "org.springframework.mail.javamail.JavaMailSenderImpl">
+      <property name="host" value="smtp.gmail.com" />
+      <property name="port" value="587" />
+      <property name="username" value="sin123test@gmail.com" />
+      <property name="password" value="sintesttest" />
+      <property name="javaMailProperties">
+         <props>
+            <prop key="mail.smtp.ssl.trust">smtp.gmail.com</prop>
+            <prop key="mail.smtp.starttls.enable">true</prop>
+            <prop key="mail.smtp.auth">true</prop>
+         </props>
+      </property>
+  	 </bean>
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+

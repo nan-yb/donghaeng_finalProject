@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.cor.packageProduct.dao.IPackageDAO">
+
+	
+	<select id="selectCategory" resultType="categoryVO">
+		select package_category_no,package_category_name from package_category
+	</select>
+	<select id="selectCar" resultType="carVO" parameterType="String">
+		select car_no,car_count,car_name,car_price,car_state,car_mem_id from package_car 
+		where car_state = 1 and car_mem_id = #{mem_id}
+	</select>
+	<insert id="createPackage" parameterType="packageVO">
+	<selectKey resultType="long" keyProperty="package_no" order="BEFORE">
+			SELECT PACKAGE_PRODUCT_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO PACKAGE_PRODUCT
+		(
+			PACKAGE_NO,PACKAGE_NAME, PACKAGE_CONTENT, PACKAGE_MINCOUNT, PACKAGE_MAXCOUNT
+			,PACKAGE_PRICE, COMPANY_ID, CAR_NO, PACKAGE_CATEGORY_NO, PACKAGE_IMG
+			,PACKAGE_START_DATE, PACKAGE_END_DATE
+		)
+		VALUES
+		(
+			#{package_no},#{package_name}, #{package_content}, #{package_mincount}, #{package_maxcount}
+			,#{package_price}, #{company_id},#{car_no}, #{package_category_no}, #{package_img}
+			,#{package_start_date}, #{package_end_date}
+		)
+	</insert>
+</mapper>

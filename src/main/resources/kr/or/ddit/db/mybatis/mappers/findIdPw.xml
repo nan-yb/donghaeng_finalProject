@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.login.dao.IFindIdPwDAO">
+	<select id="selectFindId" parameterType="personVO" resultType="String">
+		SELECT
+		    PERSON_ID
+		FROM
+		    PERSON
+		WHERE
+		    PERSON_NAME = #{person_name}
+		    AND PERSON_MAIL = #{person_mail}
+	</select>
+	<update id="updateFindPw" parameterType="personVO" >
+		UPDATE PERSON
+		    SET
+		    PERSON_PASS = #{person_pass}
+		WHERE
+		    PERSON_ID = #{person_id}
+		    AND   PERSON_MAIL = #{person_mail}
+	</update>
+	<select id="selectFindPw" parameterType="personVO" resultType="String">
+		SELECT
+		    PERSON_PASS
+		FROM
+		    PERSON
+		WHERE
+		    PERSON_ID = #{person_id}
+		    AND PERSON_MAIL = #{person_mail}
+	</select>
+</mapper>

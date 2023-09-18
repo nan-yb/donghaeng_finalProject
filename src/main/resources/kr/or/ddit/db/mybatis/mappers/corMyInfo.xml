@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.cor.myPage.dao.ICorMyPageDAO">
+	<resultMap type="personVO" id="personMap" autoMapping="true">
+		<id property="person_id" column="PERSON_ID" />
+		<collection property="corList" ofType="CorporationVO" autoMapping="true"></collection>
+	</resultMap>
+	<select id="selectCorMyPage" parameterType="String" resultMap="personMap">
+		SELECT
+		    A.COMPANY_ID,
+		    A.COMPANY_BUSINESS_NO,
+		    A.COMPANY_APPLY,
+		    B.PERSON_ID,
+		    B.PERSON_PASS,
+		    B.PERSON_ZIP,
+		    B.PERSON_ADDR1,
+		    B.PERSON_ADDR2,
+		    B.PERSON_TEL,
+		    B.PERSON_MAIL,
+		    B.PERSON_NAME,
+		    B.PER_IMG
+		FROM COMPANY A, PERSON B
+        WHERE A.COMPANY_ID = B.PERSON_ID
+        AND B.PERSON_ID = #{person_id}
+	</select>
+	<update id="updateCorMyPage" parameterType="personVO">
+		UPDATE PERSON
+		SET PERSON_PASS = #{person_pass},
+		    PERSON_ZIP = #{person_zip},
+		    PERSON_ADDR1 = #{person_addr1},
+		    PERSON_ADDR2 = #{person_addr2},
+		    PERSON_TEL = #{person_tel},
+		    PERSON_MAIL = #{person_mail},
+		    PER_IMG = #{per_img}
+		WHERE PERSON_ID = #{person_id}
+	</update>
+</mapper>

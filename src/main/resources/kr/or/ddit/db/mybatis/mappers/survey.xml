@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.cor.survey.dao.ISurveyDAO">
+	<sql id="searchFrag">
+		<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.survey_title)">
+					AND SURVEY_TITLE LIKE '%'||#{searchVO.survey_title}||'%'
+				</if>
+		</if>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM SURVEY
+		WHERE COMPANY_ID = #{searchVO.company_id}
+		<include refid="searchFrag" />
+	</select>
+	
+	
+	<select id="selectSurveyList" parameterType="pagingVO" resultType="surveyVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT SURVEY_NO , SURVEY_TITLE , COMPANY_ID , SURVEY_DATE
+		        FROM SURVEY
+		        WHERE COMPANY_ID = #{searchVO.company_id}
+		        <include refid="searchFrag" />
+		        ORDER BY SURVEY_NO DESC
+		    ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	</select>
+	
+	<sql id="searchFrag2">
+		<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.evaluation_content)">
+					AND EVALUATION_CONTENT LIKE '%'||#{searchVO.evaluation_content}||'%'
+				</if>
+		</if>
+	</sql>
+	<select id="selectTotalERecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM SURVEY_EVALUATION
+		WHERE SURVEY_NO = #{number}
+		<include refid="searchFrag2" />
+	</select>
+	
+	
+	<select id="selectSurveyEList" parameterType="pagingVO" resultType="survey_evaluationVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT EVALUATION_NO ,EVALUATION_COUNT , EVALUATION_CONTENT , EVALUATION_POINT,SURVEY_NO
+		        FROM SURVEY_EVALUATION
+		        WHERE SURVEY_NO = #{number}
+		        <include refid="searchFrag2" />
+		        ORDER BY EVALUATION_NO DESC
+		    ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	</select>
+	
+	<insert id="insertSurvey" parameterType="surveyVO">
+		<selectKey resultType="long" keyProperty="survey_no" order="BEFORE">
+			SELECT SURVEY_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO SURVEY (
+		    SURVEY_NO,COMPANY_ID,SURVEY_TITLE,SURVEY_DATE
+		) VALUES (
+			#{survey_no}, #{company_id}, #{survey_title}, sysdate
+		)
+	</insert>
+	
+	<insert id="insertSurvey_eval" parameterType="survey_evaluationVO">
+		<selectKey resultType="long" keyProperty="evaluation_no" order="BEFORE">
+			SELECT SURVEY_EVALUATION_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO SURVEY_EVALUATION (
+		    EVALUATION_NO,
+		    EVALUATION_COUNT,
+		    EVALUATION_CONTENT,
+		    EVALUATION_POINT,
+		    SURVEY_NO
+		) VALUES (
+		    #{evaluation_no},
+		    0,
+		    #{evaluation_content},
+		    0,
+		    #{survey_no}
+		)
+	</insert>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

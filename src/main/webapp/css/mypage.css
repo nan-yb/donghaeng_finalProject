@@ -1,0 +1,120 @@
+@CHARSET "UTF-8";
+.s-content {
+	background-color: #f2f2f2;
+	padding-top: 15px;;
+	padding-bottom: 7.2rem;
+	height: 500px;
+}
+.myinfo{
+	border: 6px solid #4db8ff;
+	width: 50%;
+	margin: auto;
+	padding: 20px;
+	border-radius:15px;
+	margin-top: 30px;
+	margin-bottom: 40px;
+}
+.myinfo_my{
+	list-style: none;
+	display: inline-block;
+	margin: auto;
+
+}
+.myinfo_coin{
+	display: inline-block;
+	margin-left: 150px;
+}
+.myinfo_coin_p{
+	display: inline;
+	margin-left: 20px;
+	font-size:20px;
+	font-weight: bold;
+}
+
+.mymenu{
+	list-style: none;
+	margin-left: 40%;
+
+}
+.mymenu li{
+	float: left;
+	width:100px;
+	height:100px;
+/* 	border: 3px solid #ffcc66; */
+	border-radius:100px;
+	text-align: center;
+	padding-top: 27px;
+	margin-left: 20px;
+	background-color: #ffcc66
+}
+.mymenu li:hover{
+	background-color: #80bfff;
+}
+.fa-address-book{
+	color: white;
+}
+.fa-address-book:hover{
+	color: white;
+}
+.fa-calendar-check{
+	color: white;
+}
+.fa-calendar-check:hover{
+	color: white;
+}
+.myinfo_menu{
+	width: 120px;
+	float: right;
+}
+.myinfo_btn{
+	float: right;
+	margin: 0;
+/* 	border: 2px solid black; */
+	margin-bottom: 7px;
+}
+a{
+	text-decoration: none;
+	color: black;	
+}
+.reservation_ul{
+	list-style: none;
+	margin: auto;
+	width: 50%;
+}
+.reservation_li{
+	display: inline-block;
+	width: 100px;
+	height: 100px;
+/* 	border: 2px solid black; */
+	padding-top: 17px;
+	background-color: #80bfff;
+	color: white;
+/* 	font-weight: bold; */
+	
+}
+.reservation_li1{
+	display: inline-block;
+	width: 100px;
+	height: 100px;
+/* 	border: 2px solid black; */
+	padding-top: 17px;
+	padding-left: 15px;
+	background-color: #cccccc;
+	color: black;
+	font-weight: bold;
+}
+.reservation_check{
+	width: 20%;
+	margin-left: 480px;
+	margin-bottom: 10px;
+	color: black;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+
+
+
+
+
+

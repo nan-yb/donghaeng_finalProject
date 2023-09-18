@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.customerVoice.dao.ICustomBoardDAO">
+	
+	<sql id="searchFrag">
+			<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.company_id)">
+					AND COMPANY_ID LIKE '%'||#{searchVO.company_id}||'%' 
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.customvoice_title)">
+					AND CUSTOMVOICE_TITLE LIKE '%'||#{searchVO.customvoice_title}||'%'
+				</if>
+			</if>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM CUSTOMVOICE
+		WHERE CUSTOMVOICE_NO LIKE '%'||#{searchVO.Type}||'%'
+		<include refid="searchFrag" />
+	</select>
+	<select id="getCompanyName" resultType="companyVO">
+		SELECT COMPANY_ID,COMPANY_NAME FROM COMPANY
+	</select>
+	<select id="selectBoardList" parameterType="pagingVO" resultType="voiceVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT CUSTOMVOICE_NO, 
+		        		CUSTOMVOICE_TITLE,
+		        	    CUSTOMVOICE_DATE, 
+		                COMPANY_ID,
+		                MEM_ID
+		        FROM CUSTOMVOICE
+		        WHERE CUSTOMVOICE_NO LIKE '%'||#{searchVO.Type}||'%'
+		        <include refid="searchFrag" />
+		        ORDER BY CUSTOMVOICE_NO DESC
+		    ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	</select>
+	<select id="selectBoard" parameterType="String" resultType="voiceVO">
+		SELECT CUSTOMVOICE_NO, CUSTOMVOICE_TITLE, CUSTOMVOICE_CONTENT,
+			CUSTOMVOICE_DATE, COMPANY_ID,MEM_ID
+		FROM CUSTOMVOICE
+		WHERE CUSTOMVOICE_NO LIKE '%'||#{customvoice_no}||'%'
+	</select>
+	<insert id="insertBoard" parameterType="voiceVO">
+		INSERT INTO CUSTOMVOICE(
+		    CUSTOMVOICE_NO,    CUSTOMVOICE_TITLE, CUSTOMVOICE_CONTENT,
+		    CUSTOMVOICE_DATE,    COMPANY_ID, MEM_ID
+		    
+		) VALUES (
+			#{type}||CUSTOMVOICE_SEQ.NEXTVAL,    #{customvoice_title}, #{customvoice_content},
+		    SYSDATE , #{company_id}, #{mem_id}
+		)
+	</insert>
+	
+	<update id="updateBoard" parameterType="voiceVO">
+		UPDATE CUSTOMVOICE
+		   <set>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(customvoice_title)"> 
+			   CUSTOMVOICE_TITLE		=	#{customvoice_title},
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(customvoice_content)"> 
+			   CUSTOMVOICE_CONTENT		=	#{customvoice_content},
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(company_id)"> 
+			   COMPANY_ID		=	#{company_id},
+			</if>
+		   </set>
+		WHERE CUSTOMVOICE_NO =#{customvoice_no}
+	</update>
+	<delete id="deleteBoard" parameterType="String">
+		DELETE FROM CUSTOMVOICE WHERE CUSTOMVOICE_NO = #{customvoice_no}
+	</delete>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

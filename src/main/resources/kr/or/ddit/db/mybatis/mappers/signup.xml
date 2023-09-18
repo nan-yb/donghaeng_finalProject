@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.signup.dao.ISignupDAO">
+
+<sql id="selectMemberFrag">
+		SELECT                                                 
+	    MEM_ID,    MEM_PASS,    MEM_NAME,    MEM_REGNO1,       
+	    MEM_REGNO2,    TO_CHAR(MEM_BIR, 'YYYY-MM-DD') MEM_BIR,    MEM_ZIP,    MEM_ADD1,      
+	    MEM_ADD2,    MEM_HOMETEL,    MEM_COMTEL,    MEM_HP,    
+	    MEM_MAIL,    MEM_JOB,    MEM_LIKE,    MEM_MEMORIAL,    
+	    TO_CHAR(MEM_MEMORIALDAY, 'YYYY-MM-DD') MEM_MEMORIALDAY,    MEM_MILEAGE,    MEM_DELETE
+	    , MEM_AUTH        
+		FROM MEMBER 
+	</sql>
+	<sql id="searchFrag">
+		<where>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+				<if test="searchType.equals('name')">
+					MEM_NAME LIKE '%'||#{searchWord}||'%'
+				</if>
+				<if test="searchType.equals('address')">
+					MEM_ADD1 LIKE '%'||#{searchWord}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+					MEM_NAME LIKE '%'||#{searchWord}||'%'
+					 OR 
+					MEM_ADD1 LIKE '%'||#{searchWord}||'%'
+				</if>
+			</if>
+		</where>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT COUNT(*)
+		FROM MEMBER
+		<include refid="searchFrag"/>
+	</select>
+ 	<select id="selectMemberList" parameterType="pagingVO" resultType="memberVO">
+ 		SELECT B.*
+		FROM (
+				SELECT ROWNUM RNUM, A.*
+				FROM (
+						<include refid="selectMemberFrag"/>
+						<include refid="searchFrag"/>						  
+						ORDER BY ROWID DESC 	) A   ) B
+		<![CDATA[			
+		WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}		
+		]]>			
+ 	</select>
+ 	
+	<resultMap type="memberVO" id="memberMap" autoMapping="true">
+		<id property="mem_id" column="MEM_ID" />
+		<association property="person" autoMapping="true" javaType="personVO"/>
+	</resultMap>
+ 	
+ 	<select id="selectMember" parameterType="string" resultMap="memberMap">
+ 		SELECT
+		    MEM_ID
+		FROM
+		    MEMBER A , PERSON B
+        WHERE A.MEM_ID = B.PERSON_ID
+        AND A.MEM_ID = #{var}
+ 	</select>
+ 	
+	
+ 	<select id="selectPerson" parameterType="string" resultType="personVO">
+ 		SELECT
+		    *
+		FROM
+		    PERSON B
+        WHERE PERSON_ID = #{var}
+ 	</select>
+ 	
+ 	<insert id="insertMember" parameterType="MemberVO">
+			INSERT INTO member (
+			    mem_id,
+			    mem_mileage
+			) VALUES (
+			    #{mem_id},
+			    0
+			)
+ 	</insert>
+ 	
+ 	<insert id="insertPerson" parameterType="personVO">
+			INSERT INTO person (
+			    person_id,
+			    person_pass,
+			    person_zip,
+			    person_addr1,
+			    person_addr2,
+			    person_tel,
+			    person_mail,
+			    person_name
+			) VALUES (
+			    #{person_id},
+			    #{person_pass},
+			    #{person_zip},
+			    #{person_addr1},
+			    #{person_addr2},
+			    #{person_tel},
+			    #{person_mail},
+			    #{person_name}
+			)
+ 	</insert>
+ 	
+ 	<update id = "updateMember" parameterType="memberVO">
+		UPDATE MEMBER
+		    SET
+		    MEM_NAME		=	#{mem_name},
+		    MEM_ZIP			=	#{mem_zip},
+		    MEM_ADD1		=	#{mem_add1},
+		    MEM_ADD2		=	#{mem_add2},
+		    MEM_HOMETEL		=	#{mem_hometel},
+		    MEM_COMTEL		=	#{mem_comtel},
+		    MEM_HP			=	#{mem_hp},
+		    MEM_MAIL		=	#{mem_mail},
+		    MEM_JOB			=	#{mem_job},
+		    MEM_LIKE		=	#{mem_like},
+		    MEM_MEMORIAL	=	#{mem_memorial},
+		    MEM_MEMORIALDAY	=	TO_DATE(#{mem_memorialday}, 'YYYY-MM-DD')
+		    <if test="mem_img!=null">
+		    ,	MEM_IMG 		= 	#{mem_img}
+		    </if>
+		WHERE MEM_ID =	#{mem_id} AND MEM_PASS = #{mem_pass}
+	</update>
+	
+	<delete id="deleteMember" parameterType="string">
+		UPDATE MEMBER
+		SET
+		MEM_DELETE = 'Y'
+		WHERE MEM_ID = #{mem_id}
+	</delete>
+	
+	
+	<select id="insertCorporation" parameterType="CorporationVO">
+		INSERT INTO COMPANY (
+		    COMPANY_ID,
+		    COMPANY_BUSINESS_NO,
+		    COMPANY_APPLY
+		) VALUES (
+		    #{company_id}, #{company_business_no}, 'N'
+		);
+	</select>
+	
+	
+</mapper>

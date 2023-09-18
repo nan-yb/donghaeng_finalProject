@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.corManage.dao.ICorApplyDAO">
+	<sql id="searchFrag">
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			<if test="searchType.equals('id')">
+				AND A.COMPANY_ID LIKE '%'||#{searchWord}||'%'
+			</if>
+			<if test="searchType.equals('name')">
+				AND B.PERSON_NAME LIKE '%'||#{searchWord}||'%'
+			</if>
+		</if>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM COMPANY A, PERSON B
+		WHERE A.COMPANY_ID = B.PERSON_ID
+		AND A.COMPANY_APPLY = 'N'
+		<include refid="searchFrag"></include>
+	</select>
+	
+	<resultMap type="CorporationVO" id="corMap" autoMapping="true">
+		<id property="company_id" column="COMPANY_ID" />
+		<collection property="personList" ofType="personVO" autoMapping="true"></collection>
+	</resultMap>
+	
+	
+	<select id="selectCorApplyList" parameterType="pagingVO" resultMap="corMap">
+		SELECT B.*
+		FROM (
+			SELECT ROWNUM RNUM, A.*
+			FROM (
+				SELECT
+				    A.COMPANY_ID,
+				    A.COMPANY_BUSINESS_NO,
+				    A.COMPANY_APPLY,
+				    B.PERSON_ZIP,
+				    B.PERSON_ADDR1,
+				    B.PERSON_ADDR2,
+				    B.PERSON_TEL,
+				    B.PERSON_MAIL,
+				    B.PERSON_NAME
+				FROM COMPANY A, PERSON B
+                WHERE A.COMPANY_ID = B.PERSON_ID
+                AND A.COMPANY_APPLY = 'N'
+                <include refid="searchFrag"></include>
+				ORDER BY A.COMPANY_ID ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectCorApply" parameterType="String" resultMap="corMap">
+		SELECT
+		    A.COMPANY_ID,
+		    A.COMPANY_BUSINESS_NO,
+		    A.COMPANY_APPLY,
+		    B.PERSON_ZIP,
+		    B.PERSON_ADDR1,
+		    B.PERSON_ADDR2,
+		    B.PERSON_TEL,
+		    B.PERSON_MAIL,
+		    B.PERSON_NAME
+		FROM COMPANY A, PERSON B
+        WHERE A.COMPANY_ID = B.PERSON_ID
+        AND A.COMPANY_APPLY = 'N'
+        AND A.COMPANY_ID = #{company_id}
+	</select>
+
+	<update id="updateCorApply" parameterType="String" >
+		UPDATE COMPANY
+		    SET
+		    COMPANY_APPLY = 'Y'
+		WHERE
+		    COMPANY_ID = #{company_id}
+	</update>
+
+
+</mapper>

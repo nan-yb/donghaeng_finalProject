@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.freeboard.dao.IFreeFileDAO">
+	<insert id = "insertFile" parameterType="freefileVO">
+		<selectKey resultType="long" keyProperty="board_file_no" order = "BEFORE">
+			SELECT BOARD_FILE_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO BOARD_FILE(
+			BOARD_FILE_NO,	BOARD_FILE_NAME, BOARD_FILE_SAVENAME, 
+			BOARD_FILE_MIME,	BOARD_FILE_SIZE, BOARD_FILE_FANCYSIZE, 
+			BOARD_NO
+		)VALUES(
+			#{board_file_no}, #{board_file_name}, #{board_file_savename},
+			#{board_file_mime}, #{board_file_size}, #{board_file_fancysize},
+			#{board_no}
+		)
+	</insert>
+	
+	<insert id = "insertFileList" parameterType="freefileVO">
+		<if test = "freeFileList != null and freeFileList.size() gt 0">
+			INSERT INTO BOARD_FILE(
+				BOARD_FILE_NO,	BOARD_FILE_NAME, BOARD_FILE_SAVENAME, 
+				BOARD_FILE_MIME,	BOARD_FILE_SIZE, BOARD_FILE_FANCYSIZE, 
+				BOARD_NO
+			)
+			SELECT BOARD_FILE_SEQ.NEXTVAL, A.*
+			FROM(
+			<foreach collection="freeFileList" item = "file" index = "idx" separator=" UNION ALL ">
+				SELECT #{file.board_file_name},
+					   #{file.board_file_savename}, #{file.board_file_mime},
+					   #{file.board_file_size}, #{file.board_file_fancysize},
+					   #{board_no}
+				FROM DUAL
+			</foreach>
+			)A
+		</if>
+	</insert>
+	
+	<select id = "selectFile" parameterType="long" resultType="freefileVO">
+		SELECT BOARD_FILE_NO, BOARD_FILE_NAME, BOARD_FILE_SAVENAME,
+			   BOARD_FILE_SIZE, BOARD_FILE_FANCYSIZE, BOARD_FILE_MIME
+		FROM BOARD_FILE
+		WHERE BOARD_FILE_NO = #{board_file_no}
+	</select>
+	
+	<delete id = "deleteFile" parameterType="long">
+		DELETE FROM BOARD_FILE
+		WHERE BOARD_FILE_NO = #{board_file_no}
+	</delete>
+
+	<delete id = "deleteFileList" parameterType="freefileVO">
+		DELETE FROM BOARD_FILE
+		WHERE BOARD_FILE_NO IN
+		<foreach collection="delFiles" item = "board_file_no" open="(" close= ")" separator=",">
+			#{board_file_no}
+		</foreach>
+	</delete>
+</mapper>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.noticeboard.dao.INoticeFileDAO">
+	<insert id="insertNoticeFile" parameterType="noticefileVO">
+		<selectKey resultType="long" keyProperty="notice_file_no" order="BEFORE">
+			SELECT NOTICE_FILE_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO NOTICE_FILE (
+		    NOTICE_FILE_NO,    NOTICE_FILE_NAME,    NOTICE_FILE_SAVENAME,
+		    NOTICE_FILE_MIME,    NOTICE_FILE_SIZE,    NOTICE_FILE_FANCYSIZE,
+		    NOTICE_NO
+		) VALUES (
+			#{notice_file_no},    #{notice_file_name},    #{notice_file_savename},
+		    #{notice_file_mime},    #{notice_file_size},    #{notice_file_fancysize},
+		    #{notice_no}
+		)
+	</insert>
+	
+	<insert id="insertNoticeFileList" parameterType="noticefileVO">
+		<if test="noticeFileList!=null and noticeFileList.size() gt 0">
+			INSERT INTO NOTICE_FILE
+			(
+			    NOTICE_FILE_NO,    NOTICE_FILE_NAME,    NOTICE_FILE_SAVENAME,
+		    	NOTICE_FILE_MIME,    NOTICE_FILE_SIZE,    NOTICE_FILE_FANCYSIZE,
+		   		NOTICE_NO
+			) 
+			SELECT NOTICE_FILE_SEQ.NEXTVAL, A.*
+			FROM (
+			<foreach collection="noticeFileList" item="file" index="idx" 
+					separator=" UNION ALL " >
+					SELECT     #{file.notice_file_name},
+		    		#{file.notice_file_savename},    #{file.notice_file_mime},    #{file.notice_file_size},
+		   		    #{file.notice_file_fancysize}, #{notice_no} FROM DUAL			
+			</foreach>	
+			) A	
+		</if>
+	</insert>
+	
+	<select id="selectNoticeFile" parameterType="long" resultType="noticefileVO">
+		SELECT NOTICE_FILE_NO, NOTICE_FILE_NAME, NOTICE_FILE_SAVENAME, NOTICE_FILE_SIZE
+				, NOTICE_FILE_FANCYSIZE, NOTICE_FILE_MIME
+		FROM NOTICE_FILE
+		WHERE NOTICE_FILE_NO = #{notice_file_no}
+	</select>
+	
+	<delete id="deleteNoticeFile" parameterType="long">
+		DELETE FROM NOTICE_FILE
+		WHERE NOTICE_FILE_NO = #{notice_file_no}
+	</delete>
+	
+	<delete id="deleteNoticeFileList" parameterType="noticefileVO">
+		DELETE FROM NOTICE_FILE
+		WHERE REVIEW_FILE_NO IN  
+		<foreach collection="delFiles" item="review_file_no" open="(" close=")" separator=",">
+			#{review_file_no }
+		</foreach>
+	</delete>
+	
+</mapper>

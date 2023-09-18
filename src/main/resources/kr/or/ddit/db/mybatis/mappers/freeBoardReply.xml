@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.freeboard.dao.IFreeReplyDAO">
+	<select id = "selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT COUNT(*)
+		FROM BOARD_REPLY
+		WHERE BOARD_NO = #{searchVO.board_no}
+	</select>
+	
+	<select id = "selectReplyList" parameterType="pagingVO" resultType="freereplyVO">
+		SELECT B.*
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM(
+				SELECT BOARD_NO,	BOARD_REPLY_NO,		BOARD_REPLY_MEM_ID,
+				BOARD_REPLY_CONTENT,	BOARD_REPLY_DATE , PERSON.PERSON_NAME board_reply_mem_name
+				, PERSON.PER_IMG
+				
+				FROM BOARD_REPLY , PERSON
+				WHERE BOARD_NO = #{searchVO.board_no}
+				AND BOARD_REPLY_MEM_ID = PERSON.PERSON_ID
+				ORDER BY BOARD_REPLY_NO DESC )	A	)	B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}        
+	</select>
+	
+	<insert id = "insertReply" parameterType="freereplyVO">
+		<selectKey order = "BEFORE" keyProperty="board_reply_no" resultType="long">
+			SELECT BOARD_REPLY_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO BOARD_REPLY(
+			BOARD_NO, BOARD_REPLY_NO, BOARD_REPLY_MEM_ID,
+			BOARD_REPLY_CONTENT, BOARD_REPLY_DATE
+		)VALUES(
+			#{board_no}, #{board_reply_no}, #{board_reply_mem_id},
+			#{board_reply_content}, sysdate
+		)
+	</insert>
+	
+	<select id = "selectReply" parameterType="long" resultType="freereplyVO">
+		SELECT BOARD_REPLY_NO, BOARD_NO, BOARD_REPLY_MEM_ID
+		FROM BOARD_REPLY
+		WHERE BOARD_REPLY_NO = #{board_reply_no}
+	</select>
+	
+	<delete id = "deleteReply" parameterType="long">
+		DELETE
+		FROM BOARD_REPLY
+		WHERE BOARD_REPLY_NO = #{board_reply_no}
+	</delete>
+	
+	<delete id = "deleteReplyList" parameterType="long">
+		DELETE
+		FROM BOARD_REPLY
+		WEHRE BOARD_NO = #{board_no}
+	</delete>
+	
+	<update id="updateReply" parameterType="freereplyVO">
+		UPDATE BOARD_REPLY
+			<set>
+				<if test = "@org.apache.commons.lang3.StringUtils@isNotBlank(board_reply_content)">
+					BOARD_REPLY_CONTENT = #{board_reply_content},
+				</if>
+				BOARD_REPLY_DATE = SYSDATE
+			</set>
+			WHERE BOARD_REPLY_NO = #{board_reply_no}
+	</update>
+</mapper>

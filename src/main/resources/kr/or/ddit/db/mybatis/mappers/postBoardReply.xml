@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.postboard.dao.IReplyDAO">
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT COUNT(*)
+		FROM REVIEW_REPLY
+		WHERE REVIEW_NO = #{searchVO.review_no}
+	</select>
+	<select id="selectReplyList" parameterType="pagingVO" resultType="review_replyVO">
+		SELECT B.*
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM (
+				SELECT REVIEW_NO, REVIEW_REPLY_NO, REVIEW_REPLY_MEM_ID, REVIEW_REPLY_CONTENT, REVIEW_REPLY_DATE
+				,PERSON.PERSON_NAME review_reply_mem_name , PERSON.PER_IMG
+				FROM REVIEW_REPLY , PERSON
+				WHERE REVIEW_NO = #{searchVO.review_no}
+				AND REVIEW_REPLY_MEM_ID = PERSON.PERSON_ID
+				ORDER BY REVIEW_REPLY_NO DESC  )  A   ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}		
+	</select>
+	<insert id="insertReply" parameterType="review_replyVO">
+		<selectKey order="BEFORE" keyProperty="review_reply_no" resultType="long">
+			SELECT REVIEW_REPLY_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO REVIEW_REPLY (
+		    REVIEW_NO, REVIEW_REPLY_NO, REVIEW_REPLY_MEM_ID,
+		    REVIEW_REPLY_CONTENT, REVIEW_REPLY_DATE
+		) VALUES (
+			#{review_no},    #{review_reply_no},    #{review_reply_mem_id}, 
+			#{review_reply_content}, sysdate
+		)
+	</insert>
+	<select id="selectReply" parameterType="long" resultType="review_replyVO">
+		SELECT REVIEW_REPLY_NO, REVIEW_NO, REVIEW_REPLY_MEM_ID
+		FROM REVIEW_REPLY
+		WHERE REVIEW_REPLY_NO = #{review_reply_no}
+	</select>
+	<update id="updateReply" parameterType="review_replyVO" >
+		UPDATE REVIEW_REPLY
+		    SET
+		    REVIEW_REPLY_CONTENT = #{review_reply_content}
+		WHERE
+		    REVIEW_REPLY_NO = #{review_reply_no}
+	</update>
+	
+	<delete id="deleteReply" parameterType="long">
+		DELETE 
+		FROM REVIEW_REPLY
+		WHERE REVIEW_REPLY_NO = #{review_reply_no}
+	</delete>
+</mapper>
+
+
+
+
+
+
+
+
+
+

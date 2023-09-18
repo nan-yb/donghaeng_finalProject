@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.postboard.dao.IBoardDAO">
+	<sql id="searchFrag">
+		<trim prefix=" WHERE " suffixOverrides=" AND|OR ">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.review_mem_id)">
+					REVIEW_MEM_ID LIKE '%'||#{searchVO.review_mem_id}||'%' OR
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.review_title)">
+					REVIEW_TITLE LIKE '%'||#{searchVO.review_title}||'%' OR
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.review_content)">
+					REVIEW_CONTENT LIKE '%'||#{searchVO.review_content}||'%' OR
+				</if>
+		</trim>
+	</sql>
+	<sql id="searchFrag2">
+			<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.review_mem_id)">
+					AND REVIEW_MEM_ID LIKE '%'||#{searchVO.review_mem_id}||'%' 
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.review_title)">
+					AND REVIEW_TITLE LIKE '%'||#{searchVO.review_title}||'%' 
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.review_content)">
+					AND REVIEW_CONTENT LIKE '%'||#{searchVO.review_content}||'%' 
+				</if>
+			</if>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM REVIEW
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectPerson" parameterType="String" resultType="personVO">
+		SELECT *
+		FROM PERSON
+		WHERE PERSON_ID = #{mem_id}
+	</select>
+	
+	<resultMap type="reviewVO" id="boardMap" autoMapping="true">
+		<id property="review_no" column="REVIEW_NO"/>
+		<collection property="personList" ofType="PersonVO" autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectBoardList" parameterType="pagingVO" resultMap="boardMap">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT r.REVIEW_NO, 
+		        		r.REVIEW_TITLE,
+		        		p.PERSON_NAME,p.PERSON_ID,	 r.REVIEW_DATE, 
+		                r.REVIEW_VIEW_COUNT, r.REVIEW_RECOMMEND_COUNT
+		        FROM REVIEW r,PERSON p,MEMBER m
+		        WHERE r.REVIEW_MEM_ID = m.MEM_ID
+				AND m.MEM_ID = p.PERSON_ID
+		        <include refid="searchFrag2" />
+		        ORDER BY REVIEW_NO DESC
+		    ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	</select>
+	<resultMap type="reviewVO" id="reviewMap" autoMapping="true">
+		<id property="review_no" column="REVIEW_NO"/>
+		
+		<collection property="pdsList" ofType="review_fileVO" autoMapping="true" />
+	</resultMap>
+	<select id="selectBoard" parameterType="long" resultMap="reviewMap">
+		SELECT REVIEW.REVIEW_NO REVIEW_NO, REVIEW_MEM_ID, REVIEW_TITLE, REVIEW_CONTENT,
+			REVIEW_DATE, REVIEW_VIEW_COUNT, REVIEW_RECOMMEND_COUNT 
+			, REVIEW_FILE_NO, REVIEW_SAVENAME, REVIEW_FILE_NAME, REVIEW_FILE_SIZE, REVIEW_FILE_FANCYSIZE
+			, REVIEW_FILE_MIME
+		FROM REVIEW LEFT OUTER JOIN REVIEW_FILE ON (REVIEW.REVIEW_NO = REVIEW_FILE.REVIEW_NO)
+		WHERE REVIEW.REVIEW_NO = #{review_no}
+	</select>
+	
+	<update id="incrementHit" parameterType="long">
+		UPDATE REVIEW
+		SET
+		REVIEW_VIEW_COUNT = REVIEW_VIEW_COUNT + 1
+		WHERE REVIEW_NO = #{review_no}
+	</update>
+	
+	
+	<update id="updateBoard" parameterType="reviewVO">
+		UPDATE REVIEW
+		   <set>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(review_title)"> 
+			   REVIEW_TITLE		=	#{review_title},
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(review_content)"> 
+		   	   REVIEW_CONTENT	=	#{review_content}
+		    </if>
+		   </set>
+		WHERE REVIEW_NO =#{review_no}
+	</update>
+	
+	<insert id="insertBoard" parameterType="reviewVO">
+		<selectKey resultType="long" keyProperty="review_no" order="BEFORE">
+			SELECT REVIEW_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO REVIEW (
+		    REVIEW_NO,    REVIEW_MEM_ID, REVIEW_TITLE,
+		    REVIEW_CONTENT,    REVIEW_DATE
+		    
+		) VALUES (
+			#{review_no},    #{review_mem_id}, #{review_title},
+		    #{review_content},    SYSDATE
+		    
+		)
+	</insert>
+	<delete id="deleteBoard" parameterType="long">
+		DELETE FROM REVIEW WHERE REVIEW_NO = #{review_no}
+	</delete>
+	
+	<update id="incrementRcmd" parameterType="long">
+		UPDATE REVIEW
+		SET
+		REVIEW_RECOMMEND_COUNT = REVIEW_RECOMMEND_COUNT + 1
+		WHERE REVIEW_NO = #{review_no}
+	</update>
+	
+	<insert id = "insertPostRcmd" parameterType="map">
+		INSERT INTO BOARD_RCMD (
+			BOARD_NO, RCMD_MEM_ID, BOARD_TYPE
+		) VALUES (
+			#{review_no}, #{authMember}, 2
+		)
+	</insert>
+	
+	<select id = "selectPostRcmd" parameterType="map" resultType="int">
+		SELECT NVL(COUNT(*), 0) FROM BOARD_RCMD
+		WHERE BOARD_NO = #{review_no}
+		AND RCMD_MEM_ID = #{authMember}
+		AND BOARD_TYPE = 2
+	</select>
+	
+	<delete id="deletePostRcmd" parameterType="long">
+		DELETE FROM BOARD_RCMD
+		WHERE BOARD_NO = #{review_no}
+		AND BOARD_TYPE = 2
+	</delete>
+	
+	<select id = "selectPostReport" parameterType="map" resultType="int">
+		SELECT NVL(COUNT(*), 0) FROM BOARD_REPORT
+		WHERE BOARD_NO = #{review_no}
+		AND REPORT_MEM_ID = #{authMember}
+		AND BOARD_TYPE = 2
+	</select>
+	
+	<insert id = "insertPostReport" parameterType="map">
+		<selectKey resultType = "long" keyProperty="report_no" order = "BEFORE">
+         SELECT BOARD_REPORT_SEQ.NEXTVAL FROM DUAL
+      	</selectKey>
+	      INSERT INTO BOARD_REPORT(
+	         REPORT_NO, BOARD_NO, REPORT_MEM_ID,
+	         BOARD_TYPE
+	      )VALUES(
+	         #{report_no}, #{review_no}, #{authMember},
+	         2
+	      )
+	</insert>
+	
+</mapper>

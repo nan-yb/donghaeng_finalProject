@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.qnaboard.dao.IQnaReplyDAO">
+	<select id="selectTotalRecord" resultType="long" parameterType="pagingVO">
+		SELECT NVL(COUNT(*),0) 
+		FROM QNABOARD_REPLY A, PERSON B
+		WHERE A.COMPANY_ID = B.PERSON_ID
+		AND QNABOARD_NO= #{searchVO.qnaboard_no}
+	</select>
+	<select id="selectQnaReplyList" resultType="qnaReplyVO" parameterType="pagingVO">
+		SELECT B.*
+		FROM (
+		    SELECT A.*, ROWNUM RNUM
+		    FROM (
+		        SELECT
+		            A.QNABOARD_REPLY_NO,
+		            A.QNABOARD_REPLY_CONTENT,
+		            A.QNABOARD_REPLY_DATE,
+		            A.QNABOARD_NO,
+		            A.COMPANY_ID,
+		            B.PERSON_NAME
+		        FROM
+		            QNABOARD_REPLY A, PERSON B
+		        WHERE A.COMPANY_ID = B.PERSON_ID
+				AND QNABOARD_NO= #{searchVO.qnaboard_no}
+				ORDER BY QNABOARD_REPLY_NO
+		        ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<insert id="insertQnaReply" parameterType="qnaReplyVO">
+		<selectKey resultType="long" keyProperty="qnaboard_reply_no" order="BEFORE">
+			SELECT QNABOARD_REPLY_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO QNABOARD_REPLY (
+		    QNABOARD_REPLY_NO,
+		    QNABOARD_REPLY_CONTENT,
+		    QNABOARD_REPLY_DATE,
+		    QNABOARD_NO,
+		    COMPANY_ID
+		) VALUES (
+		    #{qnaboard_reply_no}, #{qnaboard_reply_content}, SYSDATE, #{qnaboard_no}, #{company_id}
+		)
+	</insert>
+	<update id="updateQnaReply" parameterType="qnaReplyVO">
+		UPDATE QNABOARD_REPLY
+		    SET
+		    QNABOARD_REPLY_CONTENT = #{qnaboard_reply_content}
+		WHERE
+		    QNABOARD_REPLY_NO = #{qnaboard_reply_no}
+	</update>
+	
+	<delete id="deleteQnaReply" parameterType="long">
+		DELETE FROM QNABOARD_REPLY
+		WHERE
+		    QNABOARD_REPLY_NO = #{qnaboard_reply_no}
+	</delete>
+</mapper>

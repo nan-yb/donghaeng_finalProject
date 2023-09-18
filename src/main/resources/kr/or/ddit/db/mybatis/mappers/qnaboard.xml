@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.qnaboard.dao.IQnaboardDAO">
+	<sql id="searchFrag">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+				<if test="searchType.equals('writer')">
+					AND B.PERSON_NAME LIKE '%'||#{searchWord}||'%'
+				</if>
+				<if test="searchType.equals('title')">
+					AND A.QNABOARD_TITLE LIKE '%'||#{searchWord}||'%'
+				</if>
+			</if>	
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*),0) 
+		FROM QNABOARD A, PERSON B
+        WHERE A.MEM_ID = B.PERSON_ID
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectQnaboardList" parameterType="pagingVO" resultMap="qnaboardMap">
+		SELECT B.*
+		FROM (
+			SELECT ROWNUM RNUM, A.*
+			FROM (
+				SELECT
+					A.QNABOARD_NO,
+				    A.QNABOARD_TITLE,
+				    A.QNABOARD_CONTENT,
+				    A.QNABOARD_DATE,
+				    A.MEM_ID,
+				    B.PERSON_NAME
+				FROM QNABOARD A, PERSON B
+                WHERE A.MEM_ID = B.PERSON_ID
+                <include refid="searchFrag" />
+				ORDER BY QNABOARD_NO DESC
+				) A ) B
+		 WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<resultMap type="qnaboardVO" id="qnaboardMap" autoMapping="true">
+		<id property="qnaboard_no" column="QNABOARD_NO" />
+		<collection property="personList" ofType="personVO" autoMapping="true" />
+	</resultMap>
+
+
+	<select id="selectQnaboard" parameterType="long" resultMap="qnaboardMap">
+		SELECT
+					A.QNABOARD_NO,
+				    A.QNABOARD_TITLE,
+				    A.QNABOARD_CONTENT,
+				    A.QNABOARD_DATE,
+				    A.MEM_ID,
+				    B.PERSON_NAME
+				FROM QNABOARD A, PERSON B
+                WHERE A.MEM_ID = B.PERSON_ID
+				  AND A.QNABOARD_NO= #{qnaboard_no}
+	</select>
+	<insert id="insertQnaboard" parameterType="qnaboardVO">
+		<selectKey resultType="long" keyProperty="qnaboard_no" order="BEFORE">
+			SELECT QNABOARD_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO QNABOARD (
+		    QNABOARD_NO,
+		    QNABOARD_TITLE,
+		    QNABOARD_CONTENT,
+		    QNABOARD_DATE,
+		    MEM_ID
+		) VALUES (
+		    #{qnaboard_no}, #{qnaboard_title}, #{qnaboard_content}, SYSDATE, #{mem_id}
+		)
+	</insert>
+	<update id="updateQnaboard" parameterType="qnaboardVO">
+		UPDATE QNABOARD
+		    SET
+		    QNABOARD_TITLE = #{qnaboard_title },
+		    QNABOARD_CONTENT = #{qnaboard_content }
+		WHERE
+		    QNABOARD_NO = #{qnaboard_no }
+		   AND MEM_ID = #{mem_id }
+	</update>
+	<delete id="deleteQnaboard" parameterType="long">
+		DELETE FROM QNABOARD
+		WHERE
+		    QNABOARD_NO = #{qnaboard_no }
+	</delete>
+</mapper>

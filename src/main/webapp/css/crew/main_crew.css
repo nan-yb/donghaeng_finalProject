@@ -1,0 +1,67 @@
+@CHARSET "UTF-8";
+
+#jb-container {
+	margin: 10px auto;
+	padding: 20px;
+}
+
+#jb-header {
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+#jb-content {
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+#jb-footer {
+	padding: 20px;
+}
+
+@media ( min-width : 481px ) {
+	#jb-container {
+		width: 940px;
+	}
+	#jb-content {
+		width: 100%;
+		float: left;
+	}
+	#jb-sidebar {
+		width: 100%;
+		float: right;
+	}
+	#jb-footer {
+		clear: both;
+	}
+	.round {
+		display: inline-block;
+		margin: auto;
+		border-radius: 50%;
+		overflow: hidden;
+		width: 150px;
+		height: 150px;
+		border: 3px solid black;
+	}
+	.round img {
+		margin: 0 auto;
+		text-align: center;
+		display: block;
+		min-width: 100%;
+		min-height: 100%;
+	}
+	.roundDiv {
+		display: inline;
+		width: auto;
+		margin: 60px;
+	}
+	.crewName {
+		display: inline;
+	}
+	.crew-title {
+		float: left;
+	}
+	.crewContent {
+		text-align: center;
+	}
+}

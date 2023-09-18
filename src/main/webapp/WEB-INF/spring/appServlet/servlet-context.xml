@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd">
+<!-- 	스키마 종류 : beans, c, p, mvc, context -->
+<!-- 	RequestMappingHandlerMapping :  -->
+<!-- 		1) @Controller 를 가진 클래스와 @RequestMapping 메소드에 대한 정보를 수집하고, handlerMap 형성. -->
+<!-- 		2) 요청을 처리할 핸들러에 대한 정보를 handlerMap 에서 검색 -->
+<!-- 	RequestMappingHandlerAdapter :  -->
+<!-- 		HandlerMapping 이 검색한 핸들러 정보를 바탕으로 핸들러를 호출	 -->
+<!-- 	InternalResourceViewResolver : -->
+<!-- 		논리적인 view name으로 실제 view layer 를 검색하는 역할.	 -->
+	<annotation-driven />
+	
+<!-- 	정적 자원에 대한 처리 -->
+	<default-servlet-handler/>
+	<resources location="/resources/" mapping="/res/**" cache-period="0"/>
+	
+	
+	<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+	
+<!-- 	비슷한 영역을 지원하는 전략을 여러개 등록하는 경우, -->
+<!-- 	반드시 우선순위(order)를 설정해야 함. -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" 
+		p:prefix="/WEB-INF/views/" 
+		p:suffix=".jsp"
+	/>
+	
+	<beans:bean class="org.springframework.web.servlet.view.BeanNameViewResolver" 
+		p:order="1"
+	/>
+	<beans:bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
+	<beans:bean id="downloadView" class="kr.or.ddit.common.board.postboard.view.DownloadView" />
+	<beans:bean id="downloadNotice" class="kr.or.ddit.common.board.noticeboard.view.DownloadView" />
+	<beans:bean id="downloadFree" class="kr.or.ddit.common.board.freeboard.view.DownloadView" />
+	<beans:bean class="org.springframework.web.servlet.view.tiles3.TilesConfigurer" 
+		p:definitions="classpath:kr/or/ddit/tiles/*-definitions.xml"
+	/>
+	<beans:bean class="org.springframework.web.servlet.view.tiles3.TilesViewResolver" 
+		p:order="2"
+	/>
+<!-- 	필터 : MultipartResolver -->
+<!-- 	wrapper : MultipartHttpServletRequest -->
+<!-- 	Part 캡슐화 타입 : MultipartFile -->
+	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" 
+	/>
+	<interceptors>
+		<interceptor>
+<!-- 			<mapping path="/**"/> -->
+<!-- 			<exclude-mapping path="*.do"/> -->
+			<mapping path="/js/**"/>
+			<mapping path="/css/**/*.css"/>
+			<beans:bean class="org.springframework.web.servlet.mvc.WebContentInterceptor" 
+				p:useCacheControlHeader="true"
+				p:useCacheControlNoStore="true"
+				p:useExpiresHeader="true"
+				p:cacheSeconds="0"
+			/>
+		</interceptor>
+	</interceptors>
+
+	<beans:bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" 
+		p:basenames="kr.or.ddit.msgs.message , kr.or.ddit.msgs.errorMessage"
+	/>
+</beans:beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

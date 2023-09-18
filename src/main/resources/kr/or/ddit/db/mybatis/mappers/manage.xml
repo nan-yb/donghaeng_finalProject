@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.cor.manage.dao.IManageDAO">
+	<sql id="searchFrag">
+		<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.package_name)">
+					AND b.PACKAGE_NAME LIKE '%'||#{searchVO.package_name}||'%'
+				</if>
+		</if>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*),0)
+		FROM PACKAGE_RESERVATION a, PACKAGE_PRODUCT b
+		WHERE a.PACKAGE_NO = b.PACKAGE_NO
+		AND b.COMPANY_ID = #{searchVO.company_id}
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectPackageList" parameterType="pagingVO" resultType="packageVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT b.PACKAGE_NO,b.PACKAGE_NAME,b.PACKAGE_PRICE,a.PACKAGE_RESERVATION_NO,a.MEM_ID,
+		        a.PACKAGE_RESERVATION_DATE,a.PACKAGE_RESERVATION_STATE ,b.PACKAGE_START_DATE,b.PACKAGE_END_DATE
+		        FROM PACKAGE_RESERVATION a, PACKAGE_PRODUCT b
+		        WHERE a.PACKAGE_NO = b.PACKAGE_NO
+				AND b.COMPANY_ID = #{searchVO.company_id}
+		        <include refid="searchFrag" />
+		        ORDER BY b.PACKAGE_NO DESC
+		    ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+<!-- 	예약자 리스트  	-->
+	<sql id="searchFrag2">
+		<if test="searchVO!=null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.package_reservation_list_name)">
+					AND b.PACKAGE_RESERVATION_LIST_NAME LIKE '%'||#{searchVO.package_reservation_list_name}||'%'
+				</if>
+		</if>
+	</sql>
+	<select id="selectTotalReserveRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*),0)
+		FROM PACKAGE_RESERVATION a,PACKAGE_RESERVATION_LIST b
+			WHERE a.PACKAGE_RESERVATION_NO = b.PACKAGE_RESERVATION_NO
+			AND a.PACKAGE_RESERVATION_NO = #{searchVO.package_reservation_no}
+		<include refid="searchFrag2" />
+	</select>
+	<select id="selectPackageReserveList" parameterType="pagingVO" resultType="reserveListVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT a.PACKAGE_RESERVATION_NO,
+						a.MEM_ID,
+						b.PACKAGE_RESERVATION_LIST_NAME,
+						b.PACKAGE_RESERVATION_LIST_TEL,
+						b.PACKAGE_RESERVATION_LIST_GEND
+				FROM PACKAGE_RESERVATION a,PACKAGE_RESERVATION_LIST b
+				WHERE a.PACKAGE_RESERVATION_NO = b.PACKAGE_RESERVATION_NO
+				AND a.PACKAGE_RESERVATION_NO = #{searchVO.package_reservation_no}
+		        <include refid="searchFrag2" />
+		        ORDER BY a.PACKAGE_RESERVATION_NO DESC
+		    ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

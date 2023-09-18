@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.product.dao.IFreeProductDAO">
+	<insert id="insertBook" parameterType="TestHotelVO">
+		<selectKey order="BEFORE" resultType="long" keyProperty="book_no">
+			SELECT LPAD(NVL(MAX(BOOK_NO), 0)+1, 3, '0')
+			FROM TESTHOTEL
+		</selectKey>
+		INSERT INTO testhotel (
+		    book_no,    hotel_id,
+		    mem_id,    use_room_cnt
+		) VALUES (
+		    #{book_no},    #{hotel_id},
+		    #{mem_id},    #{use_room_cnt}
+		)
+	</insert>
+	
+	<select id="selectBook" resultType="TestHotelVO">
+		select HOTEL_ID, SUM(USE_ROOM_CNT) AS USE_ROOM_CNT
+		from TESTHOTEL
+		GROUP BY HOTEL_ID
+		order by 1
+	</select>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

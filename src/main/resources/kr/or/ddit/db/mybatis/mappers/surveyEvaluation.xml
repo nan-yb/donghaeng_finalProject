@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.surveyEvaluation.dao.ISurveyEvaluationDAO">
+	
+	<sql id="searchFrag">
+		<if test="searchVO!=null">
+			<trim prefix=" WHERE " suffixOverrides=" AND|OR ">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.company_id)">
+					c.COMPANY_ID LIKE '%'||#{searchVO.COMPANY_ID}||'%' OR
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.survey_title)">
+					s.SURVEY_TITLE LIKE '%'||#{searchVO.SURVEY_TITLE}||'%' OR
+				</if>
+				AND s.COMPANY_ID = p.PERSON_ID
+			</trim>
+		</if>
+		<if test = "searchVO == null">
+			WHERE s.COMPANY_ID = p.PERSON_ID
+		</if>
+	</sql>
+	
+   <select id="selectSurveyEvaluationList" resultType="surveyVO">
+		SELECT ROWNUM RNUM, A.*
+        	FROM (
+            	SELECT s.SURVEY_NO, s.SURVEY_TITLE, s.COMPANY_ID,
+                       p.PERSON_NAME, TO_CHAR(s.SURVEY_DATE, 'YYYY-MM-DD') SURVEY_DATE,
+                       TO_CHAR(s.SURVEY_END_DATE, 'YYYY-MM-DD') SURVEY_END_DATE
+                FROM SURVEY s, PERSON p
+                <include refid="searchFrag" />
+                ORDER BY SURVEY_NO DESC
+            ) A
+   </select>
+	
+	<resultMap type = "surveyVO" id = "surveyMap" autoMapping = "true">
+      <id property = "survey_no" column = "SURVEY_NO"/>
+      <collection property = "surveyList" ofType = "survey_evaluationVO" autoMapping = "true"/>
+   </resultMap>
+	
+	<select id = "selectSurveyEvaluation" parameterType="surveyVO" resultMap="surveyMap">
+		SELECT DISTINCT s.SURVEY_NO, s.SURVEY_TITLE, s.COMPANY_ID,
+			   TO_CHAR(s.SURVEY_DATE, 'YYYY-MM-DD') SURVEY_DATE,
+			   TO_CHAR(s.SURVEY_END_DATE, 'YYYY-MM-DD') SURVEY_END_DATE,
+			   e.EVALUATION_COUNT
+		FROM SURVEY s, SURVEY_EVALUATION e
+		WHERE s.SURVEY_NO = e.SURVEY_NO
+		AND s.COMPANY_ID = #{company_id}
+		AND s.survey_no = #{survey_no}
+	</select>
+	
+<!-- 	<resultMap type = "survey_evaluationVO" id = "evaluationMap" autoMapping = "true"> -->
+<!--       <id property = "survey_no" column = "SURVEY_NO"/> -->
+<!--       <collection property = "surveyList" ofType = "survey_evaluationVO" autoMapping = "true"/> -->
+<!--    </resultMap> -->
+   
+	<select id = "surveyEvaluationList" parameterType="long" resultType="survey_evaluationVO">
+		SELECT EVALUATION_CONTENT, SURVEY_NO
+		FROM SURVEY_EVALUATION
+		WHERE SURVEY_NO = #{survey_no}
+	</select>
+	
+	<insert id = "insertSurveyEvaluation" parameterType="surveyVO">
+	
+	</insert>
+	
+	<select id = "selectSurvey" parameterType="long" resultType="surveyVO">
+		SELECT * FROM SURVEY
+		WHERE SURVEY_NO = #{survey_no}
+	</select>
+</mapper>

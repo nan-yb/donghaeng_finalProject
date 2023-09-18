@@ -1,0 +1,84 @@
+@CHARSET "UTF-8";
+.customoverlay {position:relative;bottom:5px;}
+.customoverlay a {display:block;text-decoration:none;color:#000;text-align:center;border-radius:2px;font-size:14px;font-weight:bold;overflow:hidden;}
+.y1{
+	background: #eeb618;
+}
+.b1{
+	background: #6A92E4;
+}
+.r1{
+	background: #FC5B0B;
+}
+.g1{
+	background: #00B050;
+}
+.node1{
+	border : 1px solid #337ab7;
+	margin-left:20px; margin-bottom : 20px; float : left;  width: 250px; height:160px; background-color: #FFFFFF;
+}
+.weaLeft{
+	width: 49%; float: left; background-color: #337ab7; height: 100%;
+}
+.weaRigjt{
+	width: 48%; float: right; background-color: #337ab7;
+    color: white; height: 100%;
+    padding-right: 15px;
+}
+.weaFooter{
+	text-align: center;
+    bottom:0; height: 30%;
+    background-color: #337ab7;
+}
+
+.weatherContainer{
+	height: 70%;
+    background-color: #337ab7;
+}
+.weaLeft > img{
+	vertical-align:middle; width: 50px; height: 50px; display:block; margin-top:25px; margin-left: auto; margin-right: auto; 
+}
+
+.weaContent2 > img{
+	vertical-align:middle; width: 25px; height: 25px; display:block;  margin-left: auto; margin-right: auto; 
+}
+
+.weaContent{
+	clear: none;
+	text-align: right;
+	height: 33%;
+}
+
+.weaContent2{
+	clear: none;
+	text-align: center;
+	display : inline-block;
+	width: 30%;
+	margin-top: 4px;
+	font-size: 1px;
+}
+
+.forecastTableHead th {
+	font-size: 10px;
+}
+
+.forecastTableBody td {
+	font-size: 10px;
+}
+
+.clickForecast {
+	background-color: #f2f2f2;
+}
+
+.jb-content {
+        width: 50%;
+        padding: 20px;
+        margin-bottom: 20px;
+        float: left;
+  }
+.jb-sidebar {
+        width: 50%;
+        padding: 20px;
+        margin-bottom: 20px;
+        float: right;
+}

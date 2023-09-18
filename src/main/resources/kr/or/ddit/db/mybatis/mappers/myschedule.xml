@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mySchedule.dao.IMyScheduleDAO">
+	<select id="selectMyScheduleList" resultType="myScheduleVO" parameterType="String">
+		SELECT
+		    MYSCHEDULE_NO,
+		    MYSCHEDULE_TITLE,
+		    MYSCHEDULE_CONTENT,
+		    TO_CHAR(MYSCHEDULE_STARTDATE,'yyyy-MM-dd') AS MYSCHEDULE_STARTDATE,
+		    TO_CHAR(MYSCHEDULE_ENDDATE,'yyyy-MM-dd') AS MYSCHEDULE_ENDDATE,
+		    MEM_ID
+		FROM
+		    MYSCHEDULE
+		WHERE MEM_ID = #{mem_id}
+	</select>
+	<select id="selectMySchedule" parameterType="long" resultType="myScheduleVO">
+		SELECT
+		    MYSCHEDULE_NO,
+		    MYSCHEDULE_TITLE,
+		    MYSCHEDULE_CONTENT,
+		    TO_CHAR(MYSCHEDULE_STARTDATE,'yyyy-MM-dd') AS MYSCHEDULE_STARTDATE,
+		    TO_CHAR(MYSCHEDULE_ENDDATE,'yyyy-MM-dd') AS MYSCHEDULE_ENDDATE,
+		    MEM_ID
+		FROM
+			MYSCHEDULE
+		WHERE
+		    MYSCHEDULE_NO= #{myschedule_no}
+	</select>
+	
+	<insert id="insertMySchedule" parameterType="myScheduleVO">
+		<selectKey resultType="long" keyProperty="myschedule_no" order="BEFORE">
+			SELECT MYSCHEDULE_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO MYSCHEDULE (
+		    MYSCHEDULE_NO,
+		    MYSCHEDULE_TITLE,
+		    MYSCHEDULE_CONTENT,
+		    MYSCHEDULE_STARTDATE,
+		    MYSCHEDULE_ENDDATE,
+		    MEM_ID
+		) VALUES (
+		    #{myschedule_no}, #{myschedule_title},
+		    #{myschedule_content}, #{myschedule_startdate},#{myschedule_enddate},
+		    #{mem_id}
+		)
+	</insert>
+	
+	<delete id="deleteMySchedule" parameterType="long">
+		DELETE FROM MYSCHEDULE WHERE MYSCHEDULE_NO =  #{myschedule_no}
+	</delete>
+	
+	<update id="updateMySchedule" parameterType="myScheduleVO">
+		UPDATE MYSCHEDULE
+		   <set>
+		   	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(myschedule_startdate)"> 
+			   MYSCHEDULE_STARTDATE		=	#{myschedule_startdate},
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(myschedule_enddate)"> 
+			   MYSCHEDULE_ENDDATE		=	#{myschedule_enddate},
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(myschedule_content)"> 
+		   	   MYSCHEDULE_CONTENT	=	#{myschedule_content}
+		    </if>
+		   </set>
+		WHERE MYSCHEDULE_NO =#{myschedule_no}
+	</update>
+</mapper>

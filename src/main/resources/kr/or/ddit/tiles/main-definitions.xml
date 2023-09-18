@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+<!-- 	definiation name == 논리적인 view name -->
+  <definition name="parent" template="/WEB-INF/views/template.jsp">
+    <put-attribute name="title" value="동행" />
+  	<put-attribute name="preScript" value="/includee/main/preScript.jsp" />
+    <put-attribute name="header" value="/includee/main/header.jsp" />
+    <put-attribute name="footer" value="/includee/main/footer.jsp" />
+  </definition>
+  
+  <definition name="common/board/**" extends="parent">
+    <put-attribute name="body" value="/WEB-INF/views/common/board/{1}.jsp" />
+  </definition>
+  
+   <definition name="common/**" extends="parent">
+    <put-attribute name="body" value="/WEB-INF/views/common/{1}.jsp" />
+  </definition>
+  
+  
+  <definition name="member/**" extends="parent">
+    <put-attribute name="body" value="/WEB-INF/views/member/{1}.jsp" />
+  </definition>
+  
+  <definition name="air/**" extends="parent">
+    <put-attribute name="body" value="/WEB-INF/views/weather/{1}.jsp" />
+  </definition>
+  
+  <definition name="weather/**" extends="parent">
+    <put-attribute name="body" value="/WEB-INF/views/weather/{1}.jsp" />
+  </definition>
+
+   <definition name="crew/**" extends="parent">
+    <put-attribute name="body" value="/WEB-INF/views/crew/{1}.jsp" />
+  </definition>
+	
+</tiles-definitions>

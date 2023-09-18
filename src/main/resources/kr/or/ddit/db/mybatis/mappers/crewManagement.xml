@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.crewManage.dao.ICrewManagementDAO">
+	<sql id="searchFrag">
+		<where>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+				<if test="searchType.equals('no')">
+					CREW_NO LIKE '%'||#{searchWord}||'%'
+				</if>		
+				<if test="searchType.equals('name')">
+					CREW_NAME LIKE '%'||#{searchWord}||'%'
+				</if>		
+			</if>	
+		</where>
+	</sql>
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT NVL(COUNT(*), 0)
+		FROM CREW
+		<include refid="searchFrag"></include>
+	</select>
+	<select id="selectCrewManagementList" parameterType="pagingVO" resultType="crewVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM , A.*
+		    FROM (
+		        SELECT
+		            CREW_NO,
+		            MEM_ID,
+		            CREW_NAME,
+		            CREW_LIMIT,
+		            CREW_DATE,
+		            CREW_CONTENT,
+		            CREW_TYPE
+		        FROM
+		            CREW
+		        <include refid="searchFrag"></include>
+		        ORDER BY CREW_NO ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectCrewManagement" parameterType="long" resultType="crewVO">
+		SELECT
+            CREW_NO,
+            MEM_ID,
+            CREW_NAME,
+            CREW_LIMIT,
+            CREW_DATE,
+            CREW_CONTENT,
+            CREW_TYPE,
+            CREW_IMG
+        FROM
+            CREW
+        WHERE CREW_NO= #{crew_no}
+	</select>
+	<update id="updateCrewManagement" parameterType="crewVO">
+		UPDATE CREW
+		    SET
+		    CREW_TYPE = #{crew_type}
+		WHERE
+		    CREW_NO = #{crew_no}
+	</update>
+</mapper>

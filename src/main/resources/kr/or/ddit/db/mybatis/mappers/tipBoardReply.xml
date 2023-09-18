@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.board.tipboard.dao.ITReplyDAO">
+	<select id="selectTotalRecord" parameterType="pagingVO" resultType="long">
+		SELECT COUNT(*)
+		FROM TRAVEL_TIP_REPLY
+		WHERE TRAVEL_TIP_NO = #{searchVO.travel_tip_no}
+	</select>
+	<select id="selectReplyList" parameterType="pagingVO" resultType="travel_tip_replyVO">
+		SELECT B.*
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM (
+				SELECT TRAVEL_TIP_NO, TRAVEL_TIP_REPLY_NO, TRAVEL_TIP_MEM_ID, TRAVEL_TIP_REPLY_CONTENT, TRAVEL_TIP_REPLY_DATE
+				,PERSON.PERSON_NAME travel_tip_mem_name
+				, PERSON.PER_IMG
+				
+				FROM TRAVEL_TIP_REPLY, PERSON
+				WHERE TRAVEL_TIP_NO = #{searchVO.travel_tip_no}
+				AND TRAVEL_TIP_MEM_ID = PERSON.PERSON_ID
+				ORDER BY TRAVEL_TIP_REPLY_NO DESC  )  A   ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}		
+	</select>
+	<insert id="insertReply" parameterType="travel_tip_replyVO">
+		<selectKey order="BEFORE" keyProperty="travel_tip_reply_no" resultType="long">
+			SELECT TRAVEL_TIP_REPLY_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO TRAVEL_TIP_REPLY (
+		    TRAVEL_TIP_NO, TRAVEL_TIP_REPLY_NO, TRAVEL_TIP_MEM_ID,
+		    TRAVEL_TIP_REPLY_CONTENT, TRAVEL_TIP_REPLY_DATE
+		) VALUES (
+			#{travel_tip_no},    #{travel_tip_reply_no},    #{travel_tip_mem_id}, 
+			#{travel_tip_reply_content}, sysdate
+		)
+	</insert>
+	<select id="selectReply" parameterType="long" resultType="travel_tip_replyVO">
+		SELECT TRAVEL_TIP_REPLY_NO, TRAVEL_TIP_NO, TRAVEL_TIP_MEM_ID
+		FROM TRAVEL_TIP_REPLY
+		WHERE TRAVEL_TIP_REPLY_NO = #{travel_tip_reply_no}
+	</select>
+	
+	<update id="updateReply" parameterType="travel_tip_replyVO">
+		UPDATE TRAVEL_TIP_REPLY
+		    SET
+		    TRAVEL_TIP_REPLY_CONTENT = #{travel_tip_reply_content}
+		WHERE
+		    TRAVEL_TIP_REPLY_NO = #{travel_tip_reply_no}
+	</update>
+	<delete id="deleteReply" parameterType="long">
+		DELETE 
+		FROM TRAVEL_TIP_REPLY
+		WHERE TRAVEL_TIP_REPLY_NO = #{travel_tip_reply_no}
+	</delete>
+</mapper>
+
+
+
+
+
+
+
+
+
+
